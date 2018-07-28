@@ -27,6 +27,7 @@ THE SOFTWARE.
 
 using System;
 using System.Collections;
+using System.Reflection;
 using Sakaki_Entertainment.StateMachine.Core;
 using UnityEngine;
 
@@ -55,6 +56,8 @@ namespace Sakaki_Entertainment.StateMachine.Sample
 
         private IEnumerator StateChangeEvent(SystemLoadingStateEnum stateType, SkStateNodeStatusEnum stateStatus)
         {
+            Console.WriteLine("_pLog_ {0} [{1}@{2}] {3}", DateTime.UtcNow.Ticks, this.GetType(),
+                              MethodBase.GetCurrentMethod().ToString(), string.Format("stateType:{0} stateStatus:{1}", stateType, stateStatus));
             switch (stateStatus)
             {
                 case SkStateNodeStatusEnum.StateInitialize:
