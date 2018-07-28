@@ -5,9 +5,11 @@ Simple light weigth state machine.
 ## Usage
 
 1. Unity
+
+/*******************************************************************************
 ```c#
 /*******************************************************************************
-SKStateMachine
+StateMachineSample
  
 Author:
       Paulus Ery Wasito Adhi <paupawsan@gmail.com>
@@ -35,67 +37,71 @@ THE SOFTWARE.
 
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Reflection;
 using Sakaki_Entertainment.StateMachine.Core;
 using UnityEngine;
 
-public class StateMachineTest : MonoBehaviour
+namespace Sakaki_Entertainment.StateMachine.Sample
 {
-    private enum SystemLoadingStateEnum
+    public class StateMachineSample : MonoBehaviour
     {
-        None,
-        Init,
-        Loading,
-        Update,
-        Shutdown,
-        Finalize
-    }
-
-    private SkStateMachine<SystemLoadingStateEnum> mySTM;
-
-    // Use this for initialization
-    private void OnEnable()
-    {
-        mySTM = new SkStateMachine<SystemLoadingStateEnum>(StateChangeEvent, true);
-        StartCoroutine(mySTM.StartStateMachine(SystemLoadingStateEnum.Init));
-    }
-
-    private IEnumerator StateChangeEvent(SystemLoadingStateEnum stateType, SkStateNodeStatusEnum stateStatus)
-    {
-        switch (stateStatus)
+        private enum SystemLoadingStateEnum
         {
-            case SkStateNodeStatusEnum.StateInitialize:
-                break;
-            case SkStateNodeStatusEnum.StateEnter:
-            {
-                if (stateType == SystemLoadingStateEnum.Init)
-                {
-                    yield return new WaitForSeconds(5f);
-                    mySTM.MoveState(SystemLoadingStateEnum.Loading);
-                }
-            }
-                break;
-            case SkStateNodeStatusEnum.StateUpdate:
-            {
-                if (stateType == SystemLoadingStateEnum.Loading)
-                {
-                    yield return new WaitForSeconds(5f);
-                    mySTM.Shutdown();
-                }
-            }
-                break;
-            case SkStateNodeStatusEnum.StateExit:
-            {
-            }
-                break;
-            case SkStateNodeStatusEnum.StateFinalize:
-                break;
-            default:
-                throw new ArgumentOutOfRangeException("stateStatus", stateStatus, null);
+            None,
+            Init,
+            Loading,
+            Update,
+            Shutdown,
+            Finalize
         }
 
-        yield break;
+        private SkStateMachine<SystemLoadingStateEnum> mySTM;
+
+        // Use this for initialization
+        private void OnEnable()
+        {
+            mySTM = new SkStateMachine<SystemLoadingStateEnum>(StateChangeEvent, true);
+            StartCoroutine(mySTM.StartStateMachine(SystemLoadingStateEnum.Init));
+        }
+
+        private IEnumerator StateChangeEvent(SystemLoadingStateEnum stateType, SkStateNodeStatusEnum stateStatus)
+        {
+            Console.WriteLine("_pLog_ {0} [{1}@{2}] {3}", DateTime.UtcNow.Ticks, this.GetType(),
+                              MethodBase.GetCurrentMethod().ToString(), string.Format("stateType:{0} stateStatus:{1}", stateType, stateStatus));
+            switch (stateStatus)
+            {
+                case SkStateNodeStatusEnum.StateInitialize:
+                    break;
+                case SkStateNodeStatusEnum.StateEnter:
+                {
+                    if (stateType == SystemLoadingStateEnum.Init)
+                    {
+                        yield return new WaitForSeconds(5f);
+                        mySTM.MoveState(SystemLoadingStateEnum.Loading);
+                    }
+                }
+                    break;
+                case SkStateNodeStatusEnum.StateUpdate:
+                {
+                    if (stateType == SystemLoadingStateEnum.Loading)
+                    {
+                        yield return new WaitForSeconds(5f);
+                        mySTM.Shutdown();
+                    }
+                }
+                    break;
+                case SkStateNodeStatusEnum.StateExit:
+                {
+                }
+                    break;
+                case SkStateNodeStatusEnum.StateFinalize:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException("stateStatus", stateStatus, null);
+            }
+
+            yield break;
+        }
     }
 }
 ```
