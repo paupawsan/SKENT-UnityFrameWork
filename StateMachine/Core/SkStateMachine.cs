@@ -30,7 +30,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace Sakaki_Entertainment.StateMachine.Core
+namespace SakakiEntertainment.StateMachine.Core
 {
     /// <summary>
     /// An class of StateMachine of a defined state enum.

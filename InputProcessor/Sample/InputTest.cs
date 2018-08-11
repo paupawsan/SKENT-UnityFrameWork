@@ -27,10 +27,10 @@ THE SOFTWARE.
 
 using System.Collections;
 using System.Collections.Generic;
-using Sakaki_Entertainment.InputProcessor.Core;
+using SakakiEntertainment.InputProcessor.Core;
 using UnityEngine;
 
-namespace Sakaki_Entertainment.InputProcessor.Sample
+namespace SakakiEntertainment.InputProcessor.Sample
 {
     public class InputTest : MonoBehaviour
     {

@@ -28,10 +28,10 @@ THE SOFTWARE.
 using System;
 using System.Collections;
 using System.Reflection;
-using Sakaki_Entertainment.StateMachine.Core;
+using SakakiEntertainment.StateMachine.Core;
 using UnityEngine;
 
-namespace Sakaki_Entertainment.StateMachine.Sample
+namespace SakakiEntertainment.StateMachine.Sample
 {
     public class StateMachineSample : MonoBehaviour
     {

@@ -28,7 +28,7 @@ THE SOFTWARE.
 using System;
 using System.Collections;
 
-namespace Sakaki_Entertainment.StateMachine.Core
+namespace SakakiEntertainment.StateMachine.Core
 {
     public enum SkStateNodeStatusEnum
     {

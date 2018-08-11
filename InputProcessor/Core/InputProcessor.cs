@@ -29,7 +29,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Sakaki_Entertainment.InputProcessor.Core
+namespace SakakiEntertainment.InputProcessor.Core
 {
     /// <summary>
     /// This class will map given key combos agains realtime input data
