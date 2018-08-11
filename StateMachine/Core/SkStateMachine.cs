@@ -160,6 +160,7 @@ namespace SakakiEntertainment.StateMachine.Core
         {
             //m_curState = m_prevState = m_nextState = m_stateNodeDataItems[0].StateType;
             m_nextState = nextState;
+            m_isShuttingDown = false;
             while (!m_isShuttingDown)
             {
                 if (!m_curState.Equals(m_nextState))
