@@ -30,7 +30,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace Sakaki_Entertainment.StateMachine.Core
+namespace SakakiEntertainment.StateMachine.Core
 {
     /// <summary>
     /// An class of StateMachine of a defined state enum.
@@ -160,6 +160,7 @@ namespace Sakaki_Entertainment.StateMachine.Core
         {
             //m_curState = m_prevState = m_nextState = m_stateNodeDataItems[0].StateType;
             m_nextState = nextState;
+            m_isShuttingDown = false;
             while (!m_isShuttingDown)
             {
                 if (!m_curState.Equals(m_nextState))
