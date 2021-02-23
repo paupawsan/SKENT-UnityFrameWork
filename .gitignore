@@ -63,5 +63,7 @@ fabric.properties
 # Editor-based Rest Client
 .idea/httpRequests
 
+# Unity Metafiles
+*.meta
 
 # End of https://www.gitignore.io/api/rider
