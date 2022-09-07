@@ -27,27 +27,21 @@ THE SOFTWARE.
 
 using System;
 using System.Collections;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Sakaki_Entertainment.StateMachine.Core
 {
-    public enum SkStateNodeStatusEnum
-    {
-        StateInitialize,
-        StateEnter,
-        StateUpdate,
-        StateExit,
-        StateFinalize
-    }
-    
     /// <summary>
-    /// A StateNode class of a defined state enum.
+    /// An asynchronous StateNode class of a defined state enum.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class SkStateNode<T> where T: struct, IConvertible
+    public class SkStateNodeAsync<T> where T: struct, IConvertible
     {
-        protected SkStateMachine<T> m_stateMachine;
+        protected SkStateMachineAsync<T> m_stateMachine;
 
         protected bool m_isAllowMoveNextState;
+        protected readonly CancellationToken m_cancellationToken;
 
         public void MoveNextState(T nextState)
         {
@@ -64,8 +58,9 @@ namespace Sakaki_Entertainment.StateMachine.Core
         /// </summary>
         /// <param name="stateType"></param>
         /// <param name="stateMachine"></param>
-        public SkStateNode(T stateType, SkStateMachine<T> stateMachine)
+        public SkStateNodeAsync(T stateType, SkStateMachineAsync<T> stateMachine, CancellationToken token)
         {
+            m_cancellationToken = token;
             m_stateMachine = stateMachine;
             StateType = stateType;
         }
@@ -73,11 +68,11 @@ namespace Sakaki_Entertainment.StateMachine.Core
         /// <summary>
         /// Use for State initialization
         /// </summary>
-        public virtual void StateInitialize()
+        public virtual async Task StateInitialize()
         {
-            if (m_stateMachine.DefaultStateChangeEvent != null)
+            if (m_stateMachine.DefaultStateChangeDefaultEvent != null)
             {
-                m_stateMachine.DefaultStateChangeEvent(StateType, SkStateNodeStatusEnum.StateInitialize).MoveNext();
+                await m_stateMachine.DefaultStateChangeDefaultEvent(StateType, SkStateNodeStatusEnum.StateInitialize, m_cancellationToken);
             }
         }
         
@@ -85,52 +80,46 @@ namespace Sakaki_Entertainment.StateMachine.Core
         /// Will be called when state is entering
         /// </summary>
         /// <returns></returns>
-        public virtual IEnumerator StateEnter()
+        public virtual async Task StateEnter()
         {
-            if (m_stateMachine.DefaultStateChangeEvent != null)
+            if (m_stateMachine.DefaultStateChangeDefaultEvent != null)
             {
-                yield return m_stateMachine.DefaultStateChangeEvent(StateType,SkStateNodeStatusEnum.StateEnter);
+                await m_stateMachine.DefaultStateChangeDefaultEvent(StateType,SkStateNodeStatusEnum.StateEnter, m_cancellationToken);
             }
-
-            yield break;
         }
 
         /// <summary>
         /// Will be called when state is updating
         /// </summary>
         /// <returns></returns>
-        public virtual IEnumerator StateUpdate()
+        public virtual async Task StateUpdate()
         {
-            if (m_stateMachine.DefaultStateChangeEvent != null)
+            if (m_stateMachine.DefaultStateChangeDefaultEvent != null)
             {
-                yield return m_stateMachine.DefaultStateChangeEvent(StateType,SkStateNodeStatusEnum.StateUpdate);
+                await m_stateMachine.DefaultStateChangeDefaultEvent(StateType,SkStateNodeStatusEnum.StateUpdate, m_cancellationToken);
             }
-
-            yield break;
         }
 
         /// <summary>
         /// Will be called when state is exiting
         /// </summary>
         /// <returns></returns>
-        public virtual IEnumerator StateExit()
+        public virtual async Task StateExit()
         {
-            if (m_stateMachine.DefaultStateChangeEvent != null)
+            if (m_stateMachine.DefaultStateChangeDefaultEvent != null)
             {
-                yield return m_stateMachine.DefaultStateChangeEvent(StateType,SkStateNodeStatusEnum.StateExit);
+                await m_stateMachine.DefaultStateChangeDefaultEvent(StateType,SkStateNodeStatusEnum.StateExit, m_cancellationToken);
             }
-
-            yield break;
         }
 
         /// <summary>
         /// Used for state finalization
         /// </summary>
-        public virtual void StateFinalize()
+        public virtual async Task StateFinalize()
         {
-            if (m_stateMachine.DefaultStateChangeEvent != null)
+            if (m_stateMachine.DefaultStateChangeDefaultEvent != null)
             {
-                m_stateMachine.DefaultStateChangeEvent(StateType,SkStateNodeStatusEnum.StateFinalize).MoveNext();
+                await m_stateMachine.DefaultStateChangeDefaultEvent(StateType, SkStateNodeStatusEnum.StateFinalize, m_cancellationToken);
             }
 
         }

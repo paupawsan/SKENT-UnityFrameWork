@@ -29,12 +29,13 @@ using System;
 using System.Collections;
 using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
 using Sakaki_Entertainment.StateMachine.Core;
 using UnityEngine;
 
 namespace Sakaki_Entertainment.StateMachine.Sample
 {
-    public class StateMachineSample : MonoBehaviour
+    public class StateMachineAsyncSample : MonoBehaviour
     {
         private enum SystemLoadingStateEnum
         {
@@ -46,44 +47,37 @@ namespace Sakaki_Entertainment.StateMachine.Sample
             Finalize
         }
 
-        private class CancellableWait : CustomYieldInstruction
+        private class AwaitStateNode : SkStateNodeAsync<SystemLoadingStateEnum>
         {
-            private CancellationToken _token;
-            private float _seconds = 0f;
-            private float _curTime = 0f;
-            
-            public override bool keepWaiting =>  (Time.time - _curTime) < _seconds && !_token.IsCancellationRequested;
-
-            public CancellableWait(float seconds, CancellationToken token = default)
-            {
-                _curTime = Time.time;
-                _seconds = seconds;
-            }
-        }
-        
-        private class AwaitStateNode : SkStateNode<SystemLoadingStateEnum>
-        {
-            public AwaitStateNode(SystemLoadingStateEnum stateType, SkStateMachine<SystemLoadingStateEnum> stateMachine) : base(stateType, stateMachine)
+            public AwaitStateNode(SystemLoadingStateEnum stateType, SkStateMachineAsync<SystemLoadingStateEnum> stateMachine, CancellationToken token) : base(stateType, stateMachine, token)
             {
             }
 
-            public override IEnumerator StateUpdate()
+            public override async Task StateEnter()
             {
-                m_stateMachine.Shutdown();
-                yield break;
+                Debug.Log(string.Format("_pLog_ {0} [{1}@{2}] {3}", DateTime.UtcNow.Ticks, this.GetType(),
+                    MethodBase.GetCurrentMethod().ToString(), string.Format("stateType:{0} stateStatus:{1}", StateType, SkStateNodeStatusEnum.StateEnter)));
+                await Task.Delay(5000, m_cancellationToken);
+            }
+
+            public override async Task StateUpdate()
+            {
+                Debug.Log(string.Format("_pLog_ {0} [{1}@{2}] {3}", DateTime.UtcNow.Ticks, this.GetType(),
+                    MethodBase.GetCurrentMethod().ToString(), string.Format("stateType:{0} stateStatus:{1}", StateType, SkStateNodeStatusEnum.StateUpdate)));
+                await m_stateMachine.Shutdown();
             }
         }
 
-        private SkStateMachine<SystemLoadingStateEnum> mySTM;
+        private SkStateMachineAsync<SystemLoadingStateEnum> mySTM;
         private CancellationTokenSource cts;
 
         // Use this for initialization
         private void OnEnable()
         {
             cts = new CancellationTokenSource();
-            mySTM = new SkStateMachine<SystemLoadingStateEnum>(StateChangeEvent, true);
-            mySTM.RegisterStateNode(SystemLoadingStateEnum.Shutdown, new AwaitStateNode(SystemLoadingStateEnum.Shutdown, mySTM));
-            StartCoroutine(mySTM.StartStateMachine(SystemLoadingStateEnum.Init));
+            mySTM = new SkStateMachineAsync<SystemLoadingStateEnum>(StateChangeEvent, cts.Token, true);
+            mySTM.RegisterStateNode(SystemLoadingStateEnum.Shutdown, new AwaitStateNode(SystemLoadingStateEnum.Shutdown, mySTM, cts.Token));
+            mySTM.StartStateMachine(SystemLoadingStateEnum.Init);
         }
 
         private void OnDisable()
@@ -91,10 +85,10 @@ namespace Sakaki_Entertainment.StateMachine.Sample
             cts.Cancel();
         }
 
-        private IEnumerator StateChangeEvent(SystemLoadingStateEnum stateType, SkStateNodeStatusEnum stateStatus)
+        private async Task StateChangeEvent(SystemLoadingStateEnum stateType, SkStateNodeStatusEnum stateStatus, CancellationToken token)
         {
             Debug.Log(string.Format("_pLog_ {0} [{1}@{2}] {3}", DateTime.UtcNow.Ticks, this.GetType(),
-                MethodBase.GetCurrentMethod().ToString(), string.Format("stateType:{0} stateStatus:{1}", stateType, stateStatus)));
+                              MethodBase.GetCurrentMethod().ToString(), string.Format("stateType:{0} stateStatus:{1}", stateType, stateStatus)));
             switch (stateStatus)
             {
                 case SkStateNodeStatusEnum.StateInitialize:
@@ -103,8 +97,8 @@ namespace Sakaki_Entertainment.StateMachine.Sample
                 {
                     if (stateType == SystemLoadingStateEnum.Init)
                     {
-                        yield return new CancellableWait(5f, cts.Token);
-                        mySTM.MoveState(SystemLoadingStateEnum.Loading);
+                        await Task.Delay(5000, token);
+                        await mySTM.MoveState(SystemLoadingStateEnum.Loading);
                     }
                 }
                     break;
@@ -112,11 +106,11 @@ namespace Sakaki_Entertainment.StateMachine.Sample
                 {
                     if (stateType == SystemLoadingStateEnum.Loading)
                     {
-                        yield return new CancellableWait(5f, cts.Token);
-                        mySTM.MoveState(SystemLoadingStateEnum.Shutdown);
+                        await Task.Delay(5000, token);
+                        await mySTM.MoveState(SystemLoadingStateEnum.Shutdown);
                     } else if (stateType == SystemLoadingStateEnum.Shutdown)
                     {
-                        mySTM.Shutdown();
+                        await mySTM.Shutdown();
                     }
                 }
                     break;
@@ -130,7 +124,7 @@ namespace Sakaki_Entertainment.StateMachine.Sample
                     throw new ArgumentOutOfRangeException("stateStatus", stateStatus, null);
             }
 
-            yield break;
+            await Task.Delay(1);
         }
     }
 }

@@ -29,14 +29,16 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Sakaki_Entertainment.StateMachine.Core
 {
     /// <summary>
-    /// A StateMachine class of a defined state enum.
+    /// An asynchronous StateMachine class of a defined state enum.
     /// </summary>
     /// <typeparam name="T">Any enum type</typeparam>
-    public sealed class SkStateMachine<T> where T : struct, IConvertible
+    public sealed class SkStateMachineAsync<T> where T : struct, IConvertible
     {
         /// <summary>
         /// Store state node information
@@ -44,7 +46,7 @@ namespace Sakaki_Entertainment.StateMachine.Core
         private class StateNodeDataItem
         {
             public T              StateType;
-            public SkStateNode<T> StateNode;
+            public SkStateNodeAsync<T> StateNode;
         }
 
         private List<StateNodeDataItem> m_stateNodeDataItems;
@@ -55,34 +57,37 @@ namespace Sakaki_Entertainment.StateMachine.Core
         private T m_prevState = default(T);
         private T m_nextState = default(T);
         private T m_curState = default(T);
+        private CancellationToken _cancellationToken;
 
-        public OnStateChange DefaultStateChangeEvent;
+        public OnStateChange DefaultStateChangeDefaultEvent;
         
         /// <summary>
         /// Delegate for updating state note status
         /// </summary>
         /// <param name="stateType">Current state type</param>
         /// <param name="stateStatus">Current state status</param>
-        public delegate IEnumerator OnStateChange(T stateType, SkStateNodeStatusEnum stateStatus);
+        public delegate Task OnStateChange(T stateType, SkStateNodeStatusEnum stateStatus, CancellationToken token);
 
         /// <summary>
         /// Construct state machine
         /// </summary>
         /// <param name="defaultEventStatusCallback">Default state change status event callback. This will be called if target virtual SkStateNode method not overriden</param>
+        /// <param name="token">Cancellation token</param>
         /// <param name="autoRegister">When value is on, state machine will be populated with state nodes of specified state type enum</param>
-        public SkStateMachine(OnStateChange defaultEventStatusCallback, bool autoRegister = false)
+        public SkStateMachineAsync(OnStateChange defaultEventStatusCallback, CancellationToken token, bool autoRegister = false)
         {
-            DefaultStateChangeEvent += defaultEventStatusCallback;
+            _cancellationToken = token;
+            DefaultStateChangeDefaultEvent += defaultEventStatusCallback;
             m_stateNodeDataItems = new List<StateNodeDataItem>();
 
             if (!autoRegister) return;
             foreach (var value in Enum.GetValues(typeof(T)))
             {
-                RegisterStateNode((T) value, new SkStateNode<T>((T) value, this));
+                RegisterStateNode((T) value, new SkStateNodeAsync<T>((T) value, this, token));
             }
         }
 
-        ~SkStateMachine()
+        ~SkStateMachineAsync()
         {
             foreach (var value in Enum.GetValues(typeof(T)))
             {
@@ -106,9 +111,10 @@ namespace Sakaki_Entertainment.StateMachine.Core
         /// Move to next state
         /// </summary>
         /// <param name="nextStateType">State type to move to</param>
-        public void MoveState(T nextStateType)
+        public async Task MoveState(T nextStateType)
         {
             m_nextState = nextStateType;
+            await Task.Delay(1);
         }
         
         /// <summary>
@@ -116,7 +122,7 @@ namespace Sakaki_Entertainment.StateMachine.Core
         /// </summary>
         /// <param name="stateType">State type to register</param>
         /// <param name="stateNode">State node to register</param>
-        public void RegisterStateNode(T stateType, SkStateNode<T> stateNode)
+        public void RegisterStateNode(T stateType, SkStateNodeAsync<T> stateNode)
         {
             StateNodeDataItem stateNodeDataItem = GetStateNode(stateType);
             if (stateNodeDataItem == null)
@@ -157,39 +163,46 @@ namespace Sakaki_Entertainment.StateMachine.Core
         /// Start state machine
         /// </summary>
         /// <returns></returns>
-        public IEnumerator StartStateMachine(T nextState)
+        public async Task StartStateMachine(T nextState)
         {
             //m_curState = m_prevState = m_nextState = m_stateNodeDataItems[0].StateType;
             m_nextState = nextState;
             while (!m_isShuttingDown)
             {
+                if (_cancellationToken.IsCancellationRequested)
+                {
+                    Shutdown();
+                    break;
+                };
                 if (!m_curState.Equals(m_nextState))
                 {
                     //Exit prev curstate
-                    yield return GetStateNode(m_curState).StateNode.StateExit();
+                    await GetStateNode(m_curState).StateNode.StateExit();
 
                     m_prevState = m_curState;
                     m_curState = m_nextState;
                     //Move next state
-                    yield return GetStateNode(m_nextState).StateNode.StateEnter();
+                    await  GetStateNode(m_nextState).StateNode.StateEnter();
                 }
                 else
                 {
                     //Update
-                    yield return GetStateNode(m_curState).StateNode.StateUpdate();
+                    await  GetStateNode(m_curState).StateNode.StateUpdate();
                 }
-                yield return null;
+
+                await Task.Delay(1);
             }
             //Exit prev curstate
-            yield return GetStateNode(m_curState).StateNode.StateExit();
+            await GetStateNode(m_curState).StateNode.StateExit();
         }
 
         /// <summary>
         /// Shutdown state machine
         /// </summary>
-        public void Shutdown()
+        public async Task Shutdown()
         {
             m_isShuttingDown = true;
+            await Task.Delay(1);
         }
     }
 }
