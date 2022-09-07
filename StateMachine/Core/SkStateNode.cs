@@ -4,7 +4,7 @@ SkStateNode
 Author:
       Paulus Ery Wasito Adhi <paupawsan@gmail.com>
 
-Copyright (c) 2018
+Copyright (c) 2018, 2022
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -40,14 +40,14 @@ namespace Sakaki_Entertainment.StateMachine.Core
     }
     
     /// <summary>
-    /// An class of StateNode of a defined state enum.
+    /// A StateNode class of a defined state enum.
     /// </summary>
     /// <typeparam name="T"></typeparam>
     public class SkStateNode<T> where T: struct, IConvertible
     {
-        private SkStateMachine<T> m_stateMachine;
+        protected SkStateMachine<T> m_stateMachine;
 
-        private bool m_isAllowMoveNextState;
+        protected bool m_isAllowMoveNextState;
 
         public void MoveNextState(T nextState)
         {
@@ -75,9 +75,9 @@ namespace Sakaki_Entertainment.StateMachine.Core
         /// </summary>
         public virtual void StateInitialize()
         {
-            if (m_stateMachine.StateChangeEvent != null)
+            if (m_stateMachine.DefaultStateChangeEvent != null)
             {
-                m_stateMachine.StateChangeEvent(StateType, SkStateNodeStatusEnum.StateInitialize).MoveNext();
+                m_stateMachine.DefaultStateChangeEvent(StateType, SkStateNodeStatusEnum.StateInitialize).MoveNext();
             }
         }
         
@@ -87,9 +87,9 @@ namespace Sakaki_Entertainment.StateMachine.Core
         /// <returns></returns>
         public virtual IEnumerator StateEnter()
         {
-            if (m_stateMachine.StateChangeEvent != null)
+            if (m_stateMachine.DefaultStateChangeEvent != null)
             {
-                yield return m_stateMachine.StateChangeEvent(StateType,SkStateNodeStatusEnum.StateEnter);
+                yield return m_stateMachine.DefaultStateChangeEvent(StateType,SkStateNodeStatusEnum.StateEnter);
             }
 
             yield break;
@@ -101,9 +101,9 @@ namespace Sakaki_Entertainment.StateMachine.Core
         /// <returns></returns>
         public virtual IEnumerator StateUpdate()
         {
-            if (m_stateMachine.StateChangeEvent != null)
+            if (m_stateMachine.DefaultStateChangeEvent != null)
             {
-                yield return m_stateMachine.StateChangeEvent(StateType,SkStateNodeStatusEnum.StateUpdate);
+                yield return m_stateMachine.DefaultStateChangeEvent(StateType,SkStateNodeStatusEnum.StateUpdate);
             }
 
             yield break;
@@ -115,9 +115,9 @@ namespace Sakaki_Entertainment.StateMachine.Core
         /// <returns></returns>
         public virtual IEnumerator StateExit()
         {
-            if (m_stateMachine.StateChangeEvent != null)
+            if (m_stateMachine.DefaultStateChangeEvent != null)
             {
-                yield return m_stateMachine.StateChangeEvent(StateType,SkStateNodeStatusEnum.StateExit);
+                yield return m_stateMachine.DefaultStateChangeEvent(StateType,SkStateNodeStatusEnum.StateExit);
             }
 
             yield break;
@@ -128,9 +128,9 @@ namespace Sakaki_Entertainment.StateMachine.Core
         /// </summary>
         public virtual void StateFinalize()
         {
-            if (m_stateMachine.StateChangeEvent != null)
+            if (m_stateMachine.DefaultStateChangeEvent != null)
             {
-                m_stateMachine.StateChangeEvent(StateType,SkStateNodeStatusEnum.StateFinalize).MoveNext();
+                m_stateMachine.DefaultStateChangeEvent(StateType,SkStateNodeStatusEnum.StateFinalize).MoveNext();
             }
 
         }

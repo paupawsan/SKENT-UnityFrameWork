@@ -4,7 +4,7 @@ SKStateMachine
 Author:
       Paulus Ery Wasito Adhi <paupawsan@gmail.com>
 
-Copyright (c) 2018
+Copyright (c) 2018, 2022
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -33,7 +33,7 @@ using System.Reflection;
 namespace Sakaki_Entertainment.StateMachine.Core
 {
     /// <summary>
-    /// An class of StateMachine of a defined state enum.
+    /// A StateMachine class of a defined state enum.
     /// </summary>
     /// <typeparam name="T">Any enum type</typeparam>
     public sealed class SkStateMachine<T> where T : struct, IConvertible
@@ -56,7 +56,7 @@ namespace Sakaki_Entertainment.StateMachine.Core
         private T m_nextState = default(T);
         private T m_curState = default(T);
 
-        public OnStateChange StateChangeEvent;
+        public OnStateChange DefaultStateChangeEvent;
         
         /// <summary>
         /// Delegate for updating state note status
@@ -68,11 +68,11 @@ namespace Sakaki_Entertainment.StateMachine.Core
         /// <summary>
         /// Construct state machine
         /// </summary>
-        /// <param name="eventStatusCallback">State change status event callback</param>
+        /// <param name="defaultEventStatusCallback">Default state change status event callback. This will be called if target virtual SkStateNode method not overriden</param>
         /// <param name="autoRegister">When value is on, state machine will be populated with state nodes of specified state type enum</param>
-        public SkStateMachine(OnStateChange eventStatusCallback, bool autoRegister = false)
+        public SkStateMachine(OnStateChange defaultEventStatusCallback, bool autoRegister = false)
         {
-            StateChangeEvent += eventStatusCallback;
+            DefaultStateChangeEvent += defaultEventStatusCallback;
             m_stateNodeDataItems = new List<StateNodeDataItem>();
 
             if (!autoRegister) return;
@@ -130,6 +130,7 @@ namespace Sakaki_Entertainment.StateMachine.Core
             {
                 Console.WriteLine("_pLog_ {0} [{1}@{2}] {3}", DateTime.UtcNow.Ticks, this.GetType(),
                                   MethodBase.GetCurrentMethod().ToString(), string.Format("{0}", string.Format("ERROR: StateType {0} already exist!", stateType)));
+                UnRegisterStateNode(stateType);
                 m_stateNodeDataItems.Add(new StateNodeDataItem() {StateType = stateType, StateNode = stateNode});
             }
         }
