@@ -1,5 +1,9 @@
-# SKENT-UnityFrameWork
-Collection of unity framework
+# State Machine
 
-## Features
-1. [State Machine](https://github.com/paupawsan/SKENT-UnityFrameWork/tree/master/StateMachine)
+Simple light weigth state machine.
+
+## Usage
+
+1. Unity
+ - Coroutine type [StateMachine ](https://github.com/paupawsan/SKENT-UnityFrameWork/blob/master/StateMachine/Sample/StateMachineSample.cs)sample.
+ - Asynchronous type [StateMachine ](https://github.com/paupawsan/SKENT-UnityFrameWork/blob/master/StateMachine/Sample/StateMachineAsyncSample.cs)sample.
